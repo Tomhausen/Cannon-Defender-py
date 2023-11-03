@@ -1,11 +1,15 @@
 namespace SpriteKind {
     export const cannon = SpriteKind.create()
+    export const trap = SpriteKind.create()
 }
 
+// 
 //  variables
 let health = 0
 let spawn_frequency = 7200
 info.setScore(500)
+let item_selected = "cannon"
+// 
 //  setup
 scene.setTileMapLevel(assets.tilemap`level`)
 scene.centerCameraAt(96, 64)
@@ -47,6 +51,20 @@ function buy_cannon(tile: any) {
     
 }
 
+function buy_trap(tile: any) {
+    let trap: Sprite;
+    // 
+    if (tiles.tileAtLocationEquals(tile, assets.tile`empty`)) {
+        trap = sprites.create(assets.image`lava`, SpriteKind.trap)
+        tiles.placeOnTile(trap, tile)
+        trap.z = -1
+        tiles.setTileAt(tile, assets.tile`placed`)
+        info.changeScoreBy(-50)
+    }
+    
+}
+
+// 
 controller.A.onEvent(ControllerButtonEvent.Pressed, function interact() {
     if (info.score() < 100) {
         return
@@ -57,8 +75,23 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function interact() {
     if (tiles.tileAtLocationEquals(tile, assets.tile`placed`)) {
         info.changeScoreBy(-100)
         upgrade_cannon(cannons[0])
-    } else {
+    } else if (item_selected == "cannon") {
+        // 
         buy_cannon(tile)
+    } else if (item_selected == "trap") {
+        // 
+        // 
+        buy_trap(tile)
+    }
+    
+})
+controller.B.onEvent(ControllerButtonEvent.Pressed, function swap_item() {
+    // 
+    
+    if (item_selected == "cannon") {
+        item_selected = "trap"
+    } else if (item_selected == "trap") {
+        item_selected = "cannon"
     }
     
 })
@@ -76,6 +109,16 @@ sprites.onOverlap(SpriteKind.cannon, SpriteKind.Enemy, function destroy_cannon(c
     sprites.readDataSprite(cannon, "level_text").destroy()
     cannon.destroy()
     enemy.destroy()
+})
+sprites.onOverlap(SpriteKind.Enemy, SpriteKind.trap, function use_trap(enemy: Sprite, trap: Sprite) {
+    // 
+    tiles.setTileAt(trap.tilemapLocation(), assets.tile`empty`)
+    trap.destroy()
+    sprites.changeDataNumberBy(enemy, "hp", -1)
+    if (sprites.readDataNumber(enemy, "hp") < 1) {
+        enemy.destroy()
+    }
+    
 })
 scene.onOverlapTile(SpriteKind.Enemy, assets.tile`game over`, function game_over() {
     game.over(false)
