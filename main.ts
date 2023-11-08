@@ -3,13 +3,11 @@ namespace SpriteKind {
     export const trap = SpriteKind.create()
 }
 
-// 
 //  variables
 let health = 0
 let spawn_frequency = 7200
 info.setScore(500)
 let item_selected = "cannon"
-// 
 //  setup
 scene.setTileMapLevel(assets.tilemap`level`)
 scene.centerCameraAt(96, 64)
@@ -53,7 +51,6 @@ function buy_cannon(tile: any) {
 
 function buy_trap(tile: any) {
     let trap: Sprite;
-    // 
     if (tiles.tileAtLocationEquals(tile, assets.tile`empty`)) {
         trap = sprites.create(assets.image`lava`, SpriteKind.trap)
         tiles.placeOnTile(trap, tile)
@@ -64,7 +61,6 @@ function buy_trap(tile: any) {
     
 }
 
-// 
 controller.A.onEvent(ControllerButtonEvent.Pressed, function interact() {
     if (info.score() < 100) {
         return
@@ -76,17 +72,13 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function interact() {
         info.changeScoreBy(-100)
         upgrade_cannon(cannons[0])
     } else if (item_selected == "cannon") {
-        // 
         buy_cannon(tile)
     } else if (item_selected == "trap") {
-        // 
-        // 
         buy_trap(tile)
     }
     
 })
 controller.B.onEvent(ControllerButtonEvent.Pressed, function swap_item() {
-    // 
     
     if (item_selected == "cannon") {
         item_selected = "trap"
@@ -96,12 +88,14 @@ controller.B.onEvent(ControllerButtonEvent.Pressed, function swap_item() {
     
 })
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function hit(cannon_ball: Sprite, enemy: Sprite) {
-    sprites.changeDataNumberBy(enemy, "hp", -1)
-    if (sprites.readDataNumber(enemy, "hp") < 1) {
-        enemy.destroy()
-        info.changeScoreBy(100)
-    }
-    
+    let bar = statusbars.getStatusBarAttachedTo(StatusBarKind.EnemyHealth, enemy)
+    //  
+    bar.value -= 1
+    // 
+    //  sprites.change_data_number_by(enemy, "hp", -1)
+    //  if sprites.read_data_number(enemy, "hp") < 1:
+    //      enemy.destroy()
+    //      info.change_score_by(100)
     cannon_ball.destroy()
 })
 sprites.onOverlap(SpriteKind.cannon, SpriteKind.Enemy, function destroy_cannon(cannon: Sprite, enemy: Sprite) {
@@ -110,15 +104,23 @@ sprites.onOverlap(SpriteKind.cannon, SpriteKind.Enemy, function destroy_cannon(c
     cannon.destroy()
     enemy.destroy()
 })
+// 
+//  sprites.change_data_number_by(enemy, "hp", -1)
+//  if sprites.read_data_number(enemy, "hp") < 1:
+//      enemy.destroy()
 sprites.onOverlap(SpriteKind.Enemy, SpriteKind.trap, function use_trap(enemy: Sprite, trap: Sprite) {
-    // 
     tiles.setTileAt(trap.tilemapLocation(), assets.tile`empty`)
     trap.destroy()
-    sprites.changeDataNumberBy(enemy, "hp", -1)
-    if (sprites.readDataNumber(enemy, "hp") < 1) {
-        enemy.destroy()
-    }
-    
+    let bar = statusbars.getStatusBarAttachedTo(StatusBarKind.EnemyHealth, enemy)
+    // 
+    bar.value -= 1
+})
+statusbars.onZero(StatusBarKind.EnemyHealth, function on_zero(bar: StatusBarSprite) {
+    //  
+    info.changeScoreBy(100)
+    let enemy = bar.spriteAttachedTo()
+    enemy.destroy()
+    bar.destroy()
 })
 scene.onOverlapTile(SpriteKind.Enemy, assets.tile`game over`, function game_over() {
     game.over(false)
@@ -132,11 +134,22 @@ function spawn_enemy() {
     let enemy = sprites.create(assets.image`ghost`, SpriteKind.Enemy)
     tiles.placeOnRandomTile(enemy, assets.tile`spawn`)
     enemy.vx = -7
-    sprites.setDataNumber(enemy, "hp", health)
+    //  sprites.set_data_number(enemy, "hp", health)
+    let bar = statusbars.create(16, 4, StatusBarKind.EnemyHealth)
+    // 
+    bar.max = health
+    // 
+    bar.value = health
+    // 
+    bar.setColor(4, 2)
+    bar.attachToSprite(enemy)
+    // 
     timer.after(spawn_frequency, spawn_enemy)
 }
 
-spawn_enemy()
+//  spawn_enemy()
+timer.after(100, spawn_enemy)
+//  
 function fire(cannon: Sprite) {
     let ball = sprites.create(assets.image`cannon ball`, SpriteKind.Projectile)
     ball.setPosition(cannon.x + 4, cannon.y)

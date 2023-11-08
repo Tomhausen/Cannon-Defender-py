@@ -1,13 +1,13 @@
 @namespace
 class SpriteKind:
     cannon = SpriteKind.create()
-    trap = SpriteKind.create() #
+    trap = SpriteKind.create()
 
 # variables
 health = 0
 spawn_frequency = 7200
 info.set_score(500)
-item_selected = "cannon" #
+item_selected = "cannon"
 
 # setup
 scene.set_tile_map_level(assets.tilemap("level"))
@@ -46,7 +46,7 @@ def buy_cannon(tile: tile.Location):
         make_level_text(1, cannon)
         info.change_score_by(-100)
 
-def buy_trap(tile: tile.Location): #
+def buy_trap(tile: tile.Location):
     if tiles.tile_at_location_equals(tile, assets.tile("empty")):
         trap = sprites.create(assets.image("lava"), SpriteKind.trap)
         tiles.place_on_tile(trap, tile)
@@ -63,13 +63,13 @@ def interact():
         info.change_score_by(-100)
         upgrade_cannon(cannons[0])
     else:
-        if item_selected == "cannon": #
-            buy_cannon(tile) #
-        elif item_selected == "trap": #
-            buy_trap(tile) #
+        if item_selected == "cannon": 
+            buy_cannon(tile) 
+        elif item_selected == "trap": 
+            buy_trap(tile)
 controller.A.on_event(ControllerButtonEvent.PRESSED, interact)
 
-def swap_item(): #
+def swap_item(): 
     global item_selected
     if item_selected == "cannon":
         item_selected = "trap"
@@ -78,10 +78,12 @@ def swap_item(): #
 controller.B.on_event(ControllerButtonEvent.PRESSED, swap_item)
 
 def hit(cannon_ball, enemy):
-    sprites.change_data_number_by(enemy, "hp", -1)
-    if sprites.read_data_number(enemy, "hp") < 1:
-        enemy.destroy()
-        info.change_score_by(100)
+    bar = statusbars.get_status_bar_attached_to(StatusBarKind.enemy_health, enemy) # 
+    bar.value -= 1 #
+    # sprites.change_data_number_by(enemy, "hp", -1)
+    # if sprites.read_data_number(enemy, "hp") < 1:
+    #     enemy.destroy()
+    #     info.change_score_by(100)
     cannon_ball.destroy()
 sprites.on_overlap(SpriteKind.projectile, SpriteKind.enemy, hit)
 
@@ -92,13 +94,22 @@ def destroy_cannon(cannon, enemy):
     enemy.destroy()
 sprites.on_overlap(SpriteKind.cannon, SpriteKind.enemy, destroy_cannon)
 
-def use_trap(enemy, trap): #
+def use_trap(enemy, trap):
     tiles.set_tile_at(trap.tilemap_location(), assets.tile("empty"))
     trap.destroy()
-    sprites.change_data_number_by(enemy, "hp", -1)
-    if sprites.read_data_number(enemy, "hp") < 1:
-        enemy.destroy()
+    bar = statusbars.get_status_bar_attached_to(StatusBarKind.enemy_health, enemy) #
+    bar.value -= 1 #
+    # sprites.change_data_number_by(enemy, "hp", -1)
+    # if sprites.read_data_number(enemy, "hp") < 1:
+    #     enemy.destroy()
 sprites.on_overlap(SpriteKind.enemy, SpriteKind.trap, use_trap)
+
+def on_zero(bar): # 
+    info.change_score_by(100)
+    enemy = bar.sprite_attached_to()
+    enemy.destroy()
+    bar.destroy()
+statusbars.on_zero(StatusBarKind.enemy_health, on_zero)
 
 def game_over():
     game.over(False)
@@ -114,9 +125,15 @@ def spawn_enemy():
     enemy = sprites.create(assets.image("ghost"), SpriteKind.enemy)
     tiles.place_on_random_tile(enemy, assets.tile("spawn"))
     enemy.vx = -7
-    sprites.set_data_number(enemy, "hp", health)
+    # sprites.set_data_number(enemy, "hp", health)
+    bar = statusbars.create(16, 4, StatusBarKind.enemy_health) #
+    bar.max = health #
+    bar.value = health #
+    bar.set_color(4, 2)
+    bar.attach_to_sprite(enemy) #
     timer.after(spawn_frequency, spawn_enemy)
-spawn_enemy()
+# spawn_enemy()
+timer.after(100, spawn_enemy) # 
 
 def fire(cannon: Sprite):
     ball = sprites.create(assets.image("cannon ball"), SpriteKind.projectile)
