@@ -89,13 +89,13 @@ controller.B.onEvent(ControllerButtonEvent.Pressed, function swap_item() {
 })
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function hit(cannon_ball: Sprite, enemy: Sprite) {
     let bar = statusbars.getStatusBarAttachedTo(StatusBarKind.EnemyHealth, enemy)
-    //  
     bar.value -= 1
-    // 
-    //  sprites.change_data_number_by(enemy, "hp", -1)
-    //  if sprites.read_data_number(enemy, "hp") < 1:
-    //      enemy.destroy()
-    //      info.change_score_by(100)
+    sprites.changeDataNumberBy(enemy, "hp", -1)
+    if (sprites.readDataNumber(enemy, "hp") < 1) {
+        enemy.destroy()
+        info.changeScoreBy(100)
+    }
+    
     cannon_ball.destroy()
 })
 sprites.onOverlap(SpriteKind.cannon, SpriteKind.Enemy, function destroy_cannon(cannon: Sprite, enemy: Sprite) {
@@ -104,19 +104,18 @@ sprites.onOverlap(SpriteKind.cannon, SpriteKind.Enemy, function destroy_cannon(c
     cannon.destroy()
     enemy.destroy()
 })
-// 
-//  sprites.change_data_number_by(enemy, "hp", -1)
-//  if sprites.read_data_number(enemy, "hp") < 1:
-//      enemy.destroy()
 sprites.onOverlap(SpriteKind.Enemy, SpriteKind.trap, function use_trap(enemy: Sprite, trap: Sprite) {
     tiles.setTileAt(trap.tilemapLocation(), assets.tile`empty`)
     trap.destroy()
     let bar = statusbars.getStatusBarAttachedTo(StatusBarKind.EnemyHealth, enemy)
-    // 
     bar.value -= 1
+    sprites.changeDataNumberBy(enemy, "hp", -1)
+    if (sprites.readDataNumber(enemy, "hp") < 1) {
+        enemy.destroy()
+    }
+    
 })
 statusbars.onZero(StatusBarKind.EnemyHealth, function on_zero(bar: StatusBarSprite) {
-    //  
     info.changeScoreBy(100)
     let enemy = bar.spriteAttachedTo()
     enemy.destroy()
@@ -134,22 +133,17 @@ function spawn_enemy() {
     let enemy = sprites.create(assets.image`ghost`, SpriteKind.Enemy)
     tiles.placeOnRandomTile(enemy, assets.tile`spawn`)
     enemy.vx = -7
-    //  sprites.set_data_number(enemy, "hp", health)
+    sprites.setDataNumber(enemy, "hp", health)
     let bar = statusbars.create(16, 4, StatusBarKind.EnemyHealth)
-    // 
     bar.max = health
-    // 
     bar.value = health
-    // 
     bar.setColor(4, 2)
     bar.attachToSprite(enemy)
-    // 
     timer.after(spawn_frequency, spawn_enemy)
 }
 
-//  spawn_enemy()
+spawn_enemy()
 timer.after(100, spawn_enemy)
-//  
 function fire(cannon: Sprite) {
     let ball = sprites.create(assets.image`cannon ball`, SpriteKind.Projectile)
     ball.setPosition(cannon.x + 4, cannon.y)

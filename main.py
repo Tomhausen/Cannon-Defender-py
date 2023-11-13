@@ -78,12 +78,12 @@ def swap_item():
 controller.B.on_event(ControllerButtonEvent.PRESSED, swap_item)
 
 def hit(cannon_ball, enemy):
-    bar = statusbars.get_status_bar_attached_to(StatusBarKind.enemy_health, enemy) # 
-    bar.value -= 1 #
-    # sprites.change_data_number_by(enemy, "hp", -1)
-    # if sprites.read_data_number(enemy, "hp") < 1:
-    #     enemy.destroy()
-    #     info.change_score_by(100)
+    bar = statusbars.get_status_bar_attached_to(StatusBarKind.enemy_health, enemy)
+    bar.value -= 1
+    sprites.change_data_number_by(enemy, "hp", -1)
+    if sprites.read_data_number(enemy, "hp") < 1:
+        enemy.destroy()
+        info.change_score_by(100)
     cannon_ball.destroy()
 sprites.on_overlap(SpriteKind.projectile, SpriteKind.enemy, hit)
 
@@ -97,14 +97,14 @@ sprites.on_overlap(SpriteKind.cannon, SpriteKind.enemy, destroy_cannon)
 def use_trap(enemy, trap):
     tiles.set_tile_at(trap.tilemap_location(), assets.tile("empty"))
     trap.destroy()
-    bar = statusbars.get_status_bar_attached_to(StatusBarKind.enemy_health, enemy) #
-    bar.value -= 1 #
-    # sprites.change_data_number_by(enemy, "hp", -1)
-    # if sprites.read_data_number(enemy, "hp") < 1:
-    #     enemy.destroy()
+    bar = statusbars.get_status_bar_attached_to(StatusBarKind.enemy_health, enemy)
+    bar.value -= 1 
+    sprites.change_data_number_by(enemy, "hp", -1)
+    if sprites.read_data_number(enemy, "hp") < 1:
+        enemy.destroy()
 sprites.on_overlap(SpriteKind.enemy, SpriteKind.trap, use_trap)
 
-def on_zero(bar): # 
+def on_zero(bar): 
     info.change_score_by(100)
     enemy = bar.sprite_attached_to()
     enemy.destroy()
@@ -125,15 +125,15 @@ def spawn_enemy():
     enemy = sprites.create(assets.image("ghost"), SpriteKind.enemy)
     tiles.place_on_random_tile(enemy, assets.tile("spawn"))
     enemy.vx = -7
-    # sprites.set_data_number(enemy, "hp", health)
-    bar = statusbars.create(16, 4, StatusBarKind.enemy_health) #
-    bar.max = health #
-    bar.value = health #
+    sprites.set_data_number(enemy, "hp", health)
+    bar = statusbars.create(16, 4, StatusBarKind.enemy_health)
+    bar.max = health 
+    bar.value = health 
     bar.set_color(4, 2)
-    bar.attach_to_sprite(enemy) #
+    bar.attach_to_sprite(enemy)
     timer.after(spawn_frequency, spawn_enemy)
-# spawn_enemy()
-timer.after(100, spawn_enemy) # 
+spawn_enemy()
+timer.after(100, spawn_enemy) 
 
 def fire(cannon: Sprite):
     ball = sprites.create(assets.image("cannon ball"), SpriteKind.projectile)
